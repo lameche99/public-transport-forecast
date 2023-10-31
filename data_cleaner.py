@@ -1,6 +1,5 @@
 import pandas as pd
 from fredapi import Fred
-import gc
 
 def getCPIs(fred: Fred, start_date = None, end_date = None):
     cpi_urban = fred.get_series('CPIAUCSL',
@@ -55,4 +54,9 @@ def cleanNTD():
     clean_df = pub_df.loc[pub_df.Status == 'Active', ~pub_df.columns.isin(useless)]
     clean_df[['City', 'State']] = clean_df['UZA Name'].str.split(',', expand=True)
     clean_df.drop('UZA Name', inplace=True, axis=1)
-    return clean_df
+    final_wide = clean_df.groupby(['State', '3 Mode']).sum().reset_index()
+    final = final_wide.melt(id_vars=['State', '3 Mode'], value_vars=final_wide.columns.tolist()[2:])
+    final.columns = ['State', 'Mode', 'datetime', 'UPT']
+    final.set_index('datetime', inplace=True)
+    final.index = pd.to_datetime(final.index).to_period('M').to_timestamp('M')
+    return final
