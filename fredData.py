@@ -1,6 +1,7 @@
 import pandas as pd
 import yfinance as yf
 from fredapi import Fred
+import gc
 
 def getCPIs(fred: Fred, start_date = None, end_date = None):
     """
@@ -27,7 +28,7 @@ def getCPIs(fred: Fred, start_date = None, end_date = None):
     cpis.columns = ['CPI', 'CPIcn', 'CPIcu']
     cpis.reset_index(inplace=True)
     monthly = cpis.groupby(
-        pd.Grouper(key='datetime', freq='1M', label='left')
+        pd.Grouper(key='datetime', freq='1M')
     ).agg(dict(zip(cpis.columns.tolist()[1:], ['mean'] * 3)))
     return monthly
 
@@ -54,17 +55,22 @@ def getMacros(fred: Fred, start_date = None, end_date = None):
     disp_inc = fred.get_series('A229RX0',
                                 observation_start=start_date,
                                 observation_end=end_date)
-    real_est = yf.download('XLRE', interval='1mo',
+    real_est = yf.download('VNQ', interval='1mo',
                            start=start_date,
                            end=end_date).drop(['Open', 'High', 'Low', 'Adj Close', 'Volume'],
                                               axis=1)
     real_est.index = pd.to_datetime(real_est.index).to_period('M').to_timestamp('M')
+    real_est.columns = ['RE']
+    real_est.index.name = 'datetime'
+    real_est.dropna(axis=0, inplace=True)
     
     macros = pd.concat([unrate, wti, auto_sales, disp_inc], axis=1)
     macros.index.name = 'datetime'
     macros.columns = ['Unemployment', 'WTI', 'AutoSales', 'DispIncome']
     macros.reset_index(inplace=True)
     monthly = macros.groupby(
-        pd.Grouper(key='datetime', freq='1M', label='left')
+        pd.Grouper(key='datetime', freq='1M')
     ).agg(dict(zip(macros.columns.tolist()[1:], ['mean'] * 4)))
+    monthly = pd.concat([monthly, real_est], axis=1)
+    gc.collect()
     return monthly

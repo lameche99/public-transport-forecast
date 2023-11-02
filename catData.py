@@ -1,6 +1,12 @@
 import pandas as pd
 import numpy as np
 
+NORTHEAST = ['CT', 'DE', 'ME', 'MD', 'MA', 'NH', 'NJ', 'NY', 'PA', 'RI', 'VT']
+SOUTHEAST = ['AL', 'AR', 'FL', 'GA', 'KY', 'LA', 'MS', 'NC', 'SC', 'TN', 'VA', 'WV']
+MIDWEST = ['IL', 'IN', 'IA', 'KS', 'MI', 'MN', 'MO', 'NE', 'ND', 'OH', 'SD', 'WI']
+SOUTHWEST = ['AZ', 'NM', 'OK', 'TX']
+WEST = ['AK', 'CA', 'CO', 'HI', 'ID', 'MT', 'NV', 'OR', 'UT', 'WA', 'WY']
+
 def getSeasons(dates: pd.DatetimeIndex):
     """
     This function creates a categorical variable for season.
@@ -28,21 +34,15 @@ def getRegions(states: pd.Series):
     across multiple states.
     :param states: pd.Series - state codes for each observations
     """
-    NORTHEAST = ['CT', 'DE', 'ME', 'MD', 'MA', 'NH', 'NJ', 'NY', 'PA', 'RI', 'VT']
-    SOUTHEAST = ['AL', 'AR', 'FL', 'GA', 'KY', 'LA', 'MS', 'NC', 'SC', 'TN', 'VA', 'WV']
-    MIDWEST = ['IL', 'IN', 'IA', 'KS', 'MI', 'MN', 'MO', 'NE', 'ND', 'OH', 'SD', 'WI']
-    SOUTHWEST = ['AZ', 'NM', 'OK', 'TX']
-    WEST = ['AK', 'CA', 'CO', 'HI', 'ID', 'MT', 'NV', 'OR', 'UT', 'WA', 'WY']
-    mask_ne = (states.str in NORTHEAST)
-    mask_se = (states.str in SOUTHEAST)
-    mask_mw = (states.str in MIDWEST)
-    mask_sw = (states.str in SOUTHWEST)
-    mask_we = (states.str in WEST)
-    regions = np.where(mask_ne, 'NE',
-                       np.where(mask_se, 'SE',
-                                np.where(mask_mw, 'MW',
-                                         np.where(mask_sw, 'SW',
-                                                  np.where(mask_we, 'W', 'Multi')))))
+    regions = np.where(states.isin(NORTHEAST), 'NE',
+                        np.where(states.isin(SOUTHEAST), 'SE',
+                            np.where(states.isin(MIDWEST), 'MW',
+                                np.where(states.isin(SOUTHWEST), 'SW',
+                                    np.where(states.isin(WEST), 'W', 'Multi')
+                                        )
+                                    )
+                                )
+                            )
     return regions
 
 def catVars(ntd: pd.DataFrame):

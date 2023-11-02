@@ -7,6 +7,7 @@ def cleanNTD(path: str):
     This function reads the latest NTD monthly data on UPT per state,
     cleans it, and returns a dataframe in long format with a State,
     Mode of Transportation and total monthly UPT variables.
+    :param path: str - file path
     :return: pd.Dataframe - clean NTD data
     """
     pub_df = pd.read_excel(f'{path}', sheet_name='UPT')
@@ -19,6 +20,8 @@ def cleanNTD(path: str):
     final.columns = ['State', 'Mode', 'datetime', 'UPT']
     final.set_index('datetime', inplace=True)
     final.index = pd.to_datetime(final.index).to_period('M').to_timestamp('M')
+    final.State, final.Mode = final.State.astype(str).str.strip(), final.Mode.astype(str).str.strip()
+    final.UPT = final.UPT.astype(float)
     # final.reset_index(inplace=True)
     # final = final.groupby(['State', 'Mode',
     #                        pd.Grouper(key='datetime', freq='1Y')]).sum().reset_index()
