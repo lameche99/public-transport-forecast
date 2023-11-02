@@ -19,8 +19,8 @@ def cleanNTD(path: str):
     final.columns = ['State', 'Mode', 'datetime', 'UPT']
     final.set_index('datetime', inplace=True)
     final.index = pd.to_datetime(final.index).to_period('M').to_timestamp('M')
-    final.reset_index(inplace=True)
-    final = final.groupby(['State', 'Mode',
-                           pd.Grouper(key='datetime', freq='1Y')]).sum().reset_index()
-    final.set_index('datetime', inplace=True)
+    # final.reset_index(inplace=True)
+    # final = final.groupby(['State', 'Mode',
+    #                        pd.Grouper(key='datetime', freq='1Y')]).sum().reset_index()
+    # final.set_index('datetime', inplace=True)
     return final
