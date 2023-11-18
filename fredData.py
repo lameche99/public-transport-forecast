@@ -71,6 +71,6 @@ def getMacros(fred: Fred, start_date = None, end_date = None):
     monthly = macros.groupby(
         pd.Grouper(key='datetime', freq='1M')
     ).agg(dict(zip(macros.columns.tolist()[1:], ['mean'] * 4)))
-    monthly = pd.concat([monthly, real_est], axis=1)
+    monthly = monthly.join(real_est, how='inner', on=monthly.index).drop('key_0', axis=1)
     gc.collect()
     return monthly
