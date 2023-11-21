@@ -1,16 +1,19 @@
 library(MASS)
 library(tidyverse)
 library(ggplot2)
-setwd('~/Desktop/ISYE6414/public-transport-forecasting')
+setwd('~/Desktop/ISYE6414/public-transport-forecast')
 
 transport <- read.table('./data/final_transportation.csv', sep = ',', header = TRUE)[,-1]
 transport$Mode <- as.factor(transport$Mode)
 transport$Season <- as.factor(transport$Season)
+transport$Date <- as.Date(transport$Date)
 
-boxplot(pubRate~Season, xlab = 'Season', ylab = 'Rate of Public Transport Use', data = transport)
+transport.3yr <- transport[transport$Date > '2019-12-31',]
+transport.15yr <- transport[transport$Date <= '2019-12-31',]
+plot(pubRate~Unemployment, xlab = 'Unemployment', ylab = 'Rate of Public Transport Use', data = transport)
 boxplot(pubRate~Mode, xlab = 'Mode', ylab = 'Rate of Public Transport Use', data = transport)
 
-trans.pois <- glm(UPT ~ Season + Mode + RE + Unemployment + WTI + AutoSales + CPI + CPIcn + CPIcu + offset(log(population)), data = transport, family = 'poisson')
+trans.pois <- glm(UPT ~ Season + Mode + RE + Unemployment + WTI + AutoSales + CPI + CPIcn + CPIcu + offset(log(population)), data = transport.15yr, family = 'poisson')
 summary(trans.pois)
 trans.mlr <- lm(UPT ~ Season + Mode + RE + Unemployment + WTI + AutoSales + CPI + CPIcn + CPIcu, data = transport)
 summary(trans.mlr)
@@ -36,9 +39,9 @@ overdispersion <- trans.pois$deviance / wdf
 overdispersion
 
 #Quasi-Poisson
-trans.quasi <- glm(UPT ~ Season + Mode + RE + Unemployment + WTI + AutoSales + CPI + CPIcn + CPIcu, offset = offset(log(population)), data = transport, family = 'quasipoisson')
+trans.quasi <- glm(UPT ~ Season + Mode + RE + Unemployment + WTI + AutoSales + CPI + CPIcn + CPIcu, offset = offset(log(population)), data = transport.15yr, family = 'quasipoisson')
 #Negative Binomial
-trans.neg.bin <- glm.nb(UPT ~.-pubRate - Date, data = transport, link = log, init.theta = 5)
+trans.neg.bin <- glm.nb(UPT ~.-pubRate - Date - population, data = transport.15yr, link = log, init.theta = 5)
 summary(trans.quasi)
 summary(trans.neg.bin)
 
